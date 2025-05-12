@@ -1,0 +1,173 @@
+-- Drop tables in reverse order of dependencies to avoid foreign key constraint errors
+IF OBJECT_ID('PQRS', 'U') IS NOT NULL DROP TABLE PQRS;
+IF OBJECT_ID('Factura', 'U') IS NOT NULL DROP TABLE Factura;
+IF OBJECT_ID('Detalle_Orden', 'U') IS NOT NULL DROP TABLE Detalle_Orden;
+IF OBJECT_ID('Orden', 'U') IS NOT NULL DROP TABLE Orden;
+IF OBJECT_ID('Plato_Ingrediente', 'U') IS NOT NULL DROP TABLE Plato_Ingrediente;
+IF OBJECT_ID('Mesa', 'U') IS NOT NULL DROP TABLE Mesa;
+IF OBJECT_ID('Espacio', 'U') IS NOT NULL DROP TABLE Espacio;
+IF OBJECT_ID('Plato', 'U') IS NOT NULL DROP TABLE Plato;
+IF OBJECT_ID('Materias_Primas', 'U') IS NOT NULL DROP TABLE Materias_Primas;
+IF OBJECT_ID('Inventario_Materias_Primas', 'U') IS NOT NULL DROP TABLE Inventario_Materias_Primas;
+IF OBJECT_ID('Nomina', 'U') IS NOT NULL DROP TABLE Nomina;
+IF OBJECT_ID('Horario', 'U') IS NOT NULL DROP TABLE Horario;
+IF OBJECT_ID('Empleado', 'U') IS NOT NULL DROP TABLE Empleado;
+IF OBJECT_ID('Cargo', 'U') IS NOT NULL DROP TABLE Cargo;
+IF OBJECT_ID('Area', 'U') IS NOT NULL DROP TABLE Area;
+IF OBJECT_ID('Sede', 'U') IS NOT NULL DROP TABLE Sede;
+IF OBJECT_ID('Restaurante', 'U') IS NOT NULL DROP TABLE Restaurante;
+
+-- Create Restaurante table
+CREATE TABLE Restaurante (
+    RUT VARCHAR(20) PRIMARY KEY,
+    Nombre VARCHAR(100) NOT NULL
+);
+
+-- Create Sede table
+CREATE TABLE Sede (
+    ID_Sede INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre_Sede VARCHAR(50) NOT NULL,
+    Direccion VARCHAR(255)
+);
+
+-- Create Area table
+CREATE TABLE Area (
+    ID_Area INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre_Area VARCHAR(50) NOT NULL
+);
+
+-- Create Cargo table
+CREATE TABLE Cargo (
+    ID_Cargo INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre_Cargo VARCHAR(50) NOT NULL,
+    Salario_Base DECIMAL(12, 2) NOT NULL
+);
+
+-- Create Empleado table con Cedula como VARCHAR
+CREATE TABLE Empleado (
+    Cedula VARCHAR(20) PRIMARY KEY, -- Cambiado a VARCHAR para cédulas que pueden contener caracteres no numéricos
+    RUT VARCHAR(20) NOT NULL,
+    ID_Sede INT NOT NULL,
+    ID_Cargo INT NOT NULL,
+    ID_Area INT NOT NULL,
+    Nombres VARCHAR(100) NOT NULL,
+    Numero_Contacto VARCHAR(20),
+    Correo_Corporativo VARCHAR(100),
+    CONSTRAINT FK_Empleado_Restaurante FOREIGN KEY (RUT) REFERENCES Restaurante(RUT),
+    CONSTRAINT FK_Empleado_Sede FOREIGN KEY (ID_Sede) REFERENCES Sede(ID_Sede),
+    CONSTRAINT FK_Empleado_Cargo FOREIGN KEY (ID_Cargo) REFERENCES Cargo(ID_Cargo),
+    CONSTRAINT FK_Empleado_Area FOREIGN KEY (ID_Area) REFERENCES Area(ID_Area)
+);
+
+-- Create Horario table con ID_Empleado como VARCHAR
+CREATE TABLE Horario (
+    ID_Horario INT IDENTITY(1,1) PRIMARY KEY,
+    ID_Empleado VARCHAR(20) NOT NULL, -- Cambiado a VARCHAR para coincidir con Empleado(Cedula)
+    Dia_Semana VARCHAR(15),
+    Hora_Inicio TIME,
+    Hora_Fin TIME,
+    CONSTRAINT FK_Horario_Empleado FOREIGN KEY (ID_Empleado) REFERENCES Empleado(Cedula)
+);
+
+-- Create Nomina table con Cedula como VARCHAR
+CREATE TABLE Nomina (
+    ID_Nomina INT IDENTITY(1,1) PRIMARY KEY,
+    Cedula VARCHAR(20) NOT NULL, -- Cambiado a VARCHAR para coincidir con Empleado(Cedula)
+    Fecha_Pago DATE NOT NULL,
+    Horas_Trabajadas DECIMAL(5, 2),
+    Bonificaciones DECIMAL(12, 2),
+    CONSTRAINT FK_Nomina_Empleado FOREIGN KEY (Cedula) REFERENCES Empleado(Cedula)
+);
+
+-- Create Inventario_Materias_Primas table
+CREATE TABLE Inventario_Materias_Primas (
+    ID_Inventario_MP INT IDENTITY(1,1) PRIMARY KEY,
+    RUT VARCHAR(20) NOT NULL,
+    CONSTRAINT FK_Inventario_Restaurante FOREIGN KEY (RUT) REFERENCES Restaurante(RUT)
+);
+
+-- Create Materias_Primas table
+CREATE TABLE Materias_Primas (
+    ID_Ingrediente INT IDENTITY(1,1) PRIMARY KEY,
+    ID_Inventario_MP INT NOT NULL,
+    Nombre_Ingrediente VARCHAR(100) NOT NULL,
+    Descripcion TEXT,
+    Fecha_Caducidad DATE,
+    Cantidad_Stock DECIMAL(10, 3),
+    Unidad_Medida VARCHAR(20),
+    CONSTRAINT FK_MateriasPrimas_Inventario FOREIGN KEY (ID_Inventario_MP) REFERENCES Inventario_Materias_Primas(ID_Inventario_MP)
+);
+
+-- Create Espacio table
+CREATE TABLE Espacio (
+    ID_Espacio INT IDENTITY(1,1) PRIMARY KEY,
+    ID_Sede INT NOT NULL,
+    Capacidad_Maxima INT,
+    CONSTRAINT FK_Espacio_Sede FOREIGN KEY (ID_Sede) REFERENCES Sede(ID_Sede)
+);
+
+-- Create Mesa table
+CREATE TABLE Mesa (
+    ID_Mesa INT IDENTITY(1,1) PRIMARY KEY,
+    ID_Espacio INT NOT NULL,
+    Numero_Mesa INT,
+    CONSTRAINT FK_Mesa_Espacio FOREIGN KEY (ID_Espacio) REFERENCES Espacio(ID_Espacio)
+);
+
+-- Create Plato table
+CREATE TABLE Plato (
+    ID_Plato INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre_Plato VARCHAR(100) NOT NULL,
+    Descripcion TEXT,
+    Precio DECIMAL(12, 2) NOT NULL
+);
+
+-- Create Plato_Ingrediente table
+CREATE TABLE Plato_Ingrediente (
+    ID_Plato_Ingrediente INT IDENTITY(1,1) PRIMARY KEY,
+    ID_Plato INT NOT NULL,
+    ID_Ingrediente INT NOT NULL,
+    Cantidad_Usada DECIMAL(10, 3),
+    CONSTRAINT FK_PlatoIngrediente_Plato FOREIGN KEY (ID_Plato) REFERENCES Plato(ID_Plato),
+    CONSTRAINT FK_PlatoIngrediente_Ingrediente FOREIGN KEY (ID_Ingrediente) REFERENCES Materias_Primas(ID_Ingrediente)
+);
+
+-- Create Orden table con ID_Empleado como VARCHAR
+CREATE TABLE Orden (
+    ID_Orden INT IDENTITY(1,1) PRIMARY KEY,
+    ID_Mesa INT NOT NULL,
+    ID_Empleado VARCHAR(20) NOT NULL, -- Cambiado a VARCHAR para coincidir con Empleado(Cedula)
+    Fecha_Hora DATETIME2 NOT NULL,
+    CONSTRAINT FK_Orden_Mesa FOREIGN KEY (ID_Mesa) REFERENCES Mesa(ID_Mesa),
+    CONSTRAINT FK_Orden_Empleado FOREIGN KEY (ID_Empleado) REFERENCES Empleado(Cedula)
+);
+
+-- Create Detalle_Orden table
+CREATE TABLE Detalle_Orden (
+    ID_Detalle_Orden INT IDENTITY(1,1) PRIMARY KEY,
+    ID_Orden INT NOT NULL,
+    ID_Plato INT NOT NULL,
+    Cantidad INT NOT NULL,
+    CONSTRAINT FK_DetalleOrden_Orden FOREIGN KEY (ID_Orden) REFERENCES Orden(ID_Orden),
+    CONSTRAINT FK_DetalleOrden_Plato FOREIGN KEY (ID_Plato) REFERENCES Plato(ID_Plato)
+);
+
+-- Create Factura table
+CREATE TABLE Factura (
+    ID_Factura INT IDENTITY(1,1) PRIMARY KEY,
+    ID_Orden INT NOT NULL,
+    Fecha_Emision DATE NOT NULL,
+    IVA DECIMAL(12, 2),
+    Total DECIMAL(12, 2),
+    CONSTRAINT FK_Factura_Orden FOREIGN KEY (ID_Orden) REFERENCES Orden(ID_Orden)
+);
+
+-- Create PQRS table
+CREATE TABLE PQRS (
+    ID_Solicitud INT IDENTITY(1,1) PRIMARY KEY,
+    RUT VARCHAR(20) NOT NULL,
+    Tipo_Solicitud VARCHAR(50) NOT NULL,
+    Descripcion TEXT,
+    Fecha DATE NOT NULL,
+    CONSTRAINT FK_PQRS_Restaurante FOREIGN KEY (RUT) REFERENCES Restaurante(RUT)
+);
