@@ -5,6 +5,7 @@ import Sidebar from '@/components/layout/sidebar';
 import QueryEditor from '@/components/database/query-editor';
 import QueryResults from '@/components/database/query-results';
 import ConnectionModal from '@/components/database/connection-modal';
+import DataEntryForms from '@/components/data-entry-forms';
 import { useDatabase } from '@/contexts/database-context';
 import { Connection } from '@shared/schema';
 import { Button } from '@/components/ui/button';
@@ -385,18 +386,110 @@ export default function Home() {
             </Tabs>
           </div>
 
-          {/* Query Editor and Results */}
+          {/* Main Content Area - Switch between SQL Editor and Forms */}
           <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
-            {/* Query Editor */}
-            <QueryEditor 
-              query={editorQuery}
-              onChange={setEditorQuery}
-            />
+            {activeSection === 'query-editor' && (
+              <>
+                {/* Query Editor */}
+                <QueryEditor 
+                  query={editorQuery}
+                  onChange={setEditorQuery}
+                />
 
-            <div className="resize-handle hidden lg:block"></div>
+                <div className="resize-handle hidden lg:block"></div>
 
-            {/* Query Results */}
-            <QueryResults />
+                {/* Query Results */}
+                <QueryResults />
+              </>
+            )}
+            
+            {(activeSection === 'employees' || activeSection === 'inventory' || activeSection === 'menu' || activeSection === 'orders') && (
+              <div className="flex-1 p-6 overflow-auto">
+                <DataEntryForms />
+              </div>
+            )}
+            
+            {activeSection === 'tables-explorer' && (
+              <div className="flex-1 p-6 overflow-auto">
+                <div className="max-w-4xl mx-auto">
+                  <h2 className="text-2xl font-bold mb-4">Explorador de Tablas</h2>
+                  <p className="text-muted-foreground mb-6">Aquí puedes ver la estructura de las tablas de tu base de datos.</p>
+                  <div className="bg-card p-4 rounded-lg border">
+                    <p className="text-sm text-muted-foreground">Esta funcionalidad mostrará todas las tablas disponibles en tu base de datos conectada.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeSection === 'dashboard' && (
+              <div className="flex-1 p-6 overflow-auto">
+                <div className="max-w-4xl mx-auto">
+                  <h2 className="text-2xl font-bold mb-4">Dashboard de Análisis</h2>
+                  <p className="text-muted-foreground mb-6">Visualización de métricas y estadísticas del restaurante.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="bg-card p-4 rounded-lg border">
+                      <h3 className="font-semibold mb-2">Ventas del Día</h3>
+                      <p className="text-2xl font-bold text-primary">$0</p>
+                    </div>
+                    <div className="bg-card p-4 rounded-lg border">
+                      <h3 className="font-semibold mb-2">Órdenes Activas</h3>
+                      <p className="text-2xl font-bold text-primary">0</p>
+                    </div>
+                    <div className="bg-card p-4 rounded-lg border">
+                      <h3 className="font-semibold mb-2">Empleados Activos</h3>
+                      <p className="text-2xl font-bold text-primary">0</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeSection === 'reports' && (
+              <div className="flex-1 p-6 overflow-auto">
+                <div className="max-w-4xl mx-auto">
+                  <h2 className="text-2xl font-bold mb-4">Reportes</h2>
+                  <p className="text-muted-foreground mb-6">Genera reportes detallados sobre las operaciones del restaurante.</p>
+                  <div className="space-y-4">
+                    <Button variant="outline" onClick={() => {
+                      setActiveSection('query-editor');
+                      selectTemplate('revenueByMonth');
+                    }}>
+                      Ver Ingresos por Mes
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setActiveSection('query-editor');
+                      selectTemplate('listOrders');
+                    }}>
+                      Ver Órdenes Recientes
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeSection === 'kitchen' && (
+              <div className="flex-1 p-6 overflow-auto">
+                <div className="max-w-4xl mx-auto">
+                  <h2 className="text-2xl font-bold mb-4">Gestión de Cocina</h2>
+                  <p className="text-muted-foreground mb-6">Control y seguimiento de la preparación de platos.</p>
+                  <div className="bg-card p-4 rounded-lg border">
+                    <p className="text-sm text-muted-foreground">Funcionalidad de gestión de cocina en desarrollo.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeSection === 'history' && (
+              <div className="flex-1 p-6 overflow-auto">
+                <div className="max-w-4xl mx-auto">
+                  <h2 className="text-2xl font-bold mb-4">Historial de Consultas</h2>
+                  <p className="text-muted-foreground mb-6">Revisa las consultas SQL ejecutadas anteriormente.</p>
+                  <div className="bg-card p-4 rounded-lg border">
+                    <p className="text-sm text-muted-foreground">El historial de consultas se mostrará aquí.</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
