@@ -110,13 +110,35 @@ export class MemStorage implements IStorage {
   // SQL Server operations (implemented with actual SQL Server connections in production)
   async testConnection(connection: InsertConnection): Promise<boolean> {
     try {
-      // In a real implementation, this would use the mssql package
-      // For the demo version, we'll simulate a successful connection
+      // Import SQL Server package dynamically
+      const sql = await import('mssql');
+      
+      // Build connection config for Docker SQL Server
+      const config = {
+        user: connection.username,
+        password: connection.password,
+        server: connection.server,
+        database: connection.database,
+        options: {
+          trustServerCertificate: true,
+          enableArithAbort: true,
+          encrypt: false, // Important for Docker containers
+          connectTimeout: 30000,
+          requestTimeout: 30000
+        },
+        pool: {
+          max: 10,
+          min: 0,
+          idleTimeoutMillis: 30000
+        }
+      };
+      
       console.log(`Testing connection to: ${connection.server}/${connection.database}`);
       
-      // Simulate connection delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      // Try to connect
+      const pool = await new sql.default.ConnectionPool(config).connect();
+      await pool.close();
+      console.log("Connection successful!");
       return true;
     } catch (error) {
       console.error("Connection test failed:", error);
@@ -132,84 +154,58 @@ export class MemStorage implements IStorage {
         throw new Error("Connection not found");
       }
 
+      // Import SQL Server package dynamically
+      const sql = await import('mssql');
+      
       // Record the query start time
       const startTime = Date.now();
       
-      // Simulate query execution (would use actual SQL Server in production)
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Simulate query result based on the SQL query type
-      let simulatedResult: QueryResult;
-      
-      if (sqlQuery.toLowerCase().includes('select')) {
-        // For SELECT queries, generate sample data
-        if (sqlQuery.toLowerCase().includes('restaurante')) {
-          simulatedResult = {
-            columns: [
-              { name: 'RUT', type: 'string' },
-              { name: 'Nombre', type: 'string' }
-            ],
-            rows: [
-              { RUT: 'R123456789', Nombre: 'Restaurante El Sabor' },
-              { RUT: 'R987654321', Nombre: 'La Mesa Grande' }
-            ],
-            rowCount: 2,
-            executionTime: Date.now() - startTime
-          };
-        } else if (sqlQuery.toLowerCase().includes('empleado')) {
-          simulatedResult = {
-            columns: [
-              { name: 'Cedula', type: 'string' },
-              { name: 'Nombres', type: 'string' },
-              { name: 'Area', type: 'string' },
-              { name: 'Cargo', type: 'string' }
-            ],
-            rows: [
-              { Cedula: 'E001', Nombres: 'Juan Pérez', Area: 'Cocina', Cargo: 'Chef' },
-              { Cedula: 'E002', Nombres: 'María López', Area: 'Servicio', Cargo: 'Mesero' }
-            ],
-            rowCount: 2,
-            executionTime: Date.now() - startTime
-          };
-        } else {
-          // Generic empty result for other SELECT queries
-          simulatedResult = {
-            columns: [{ name: 'result', type: 'string' }],
-            rows: [{ result: 'Query executed successfully' }],
-            rowCount: 1,
-            executionTime: Date.now() - startTime
-          };
+      // Build connection config for Docker SQL Server
+      const config = {
+        user: connection.username,
+        password: connection.password,
+        server: connection.server,
+        database: connection.database,
+        options: {
+          trustServerCertificate: true,
+          enableArithAbort: true,
+          encrypt: false, // Important for Docker containers
+          connectTimeout: 30000,
+          requestTimeout: 30000
+        },
+        pool: {
+          max: 10,
+          min: 0,
+          idleTimeoutMillis: 30000
         }
-      } else if (sqlQuery.toLowerCase().includes('create table') || 
-                sqlQuery.toLowerCase().includes('drop table')) {
-        // For DDL queries
-        simulatedResult = {
-          columns: [{ name: 'message', type: 'string' }],
-          rows: [{ message: 'Schema modified successfully' }],
-          rowCount: 0,
-          executionTime: Date.now() - startTime
-        };
-      } else if (sqlQuery.toLowerCase().includes('insert') || 
-                sqlQuery.toLowerCase().includes('update') || 
-                sqlQuery.toLowerCase().includes('delete')) {
-        // For DML queries
-        simulatedResult = {
-          columns: [{ name: 'rowsAffected', type: 'number' }],
-          rows: [{ rowsAffected: 1 }],
-          rowCount: 1,
-          executionTime: Date.now() - startTime
-        };
-      } else {
-        // For any other queries
-        simulatedResult = {
-          columns: [{ name: 'status', type: 'string' }],
-          rows: [{ status: 'Query executed' }],
-          rowCount: 0,
-          executionTime: Date.now() - startTime
-        };
-      }
+      };
       
-      return simulatedResult;
+      console.log("Executing query:", sqlQuery);
+      
+      // Connect and execute query
+      const pool = await new sql.default.ConnectionPool(config).connect();
+      const result = await pool.request().query(sqlQuery);
+      
+      // Calculate execution time
+      const executionTime = Date.now() - startTime;
+      
+      // Format the results
+      const columns = result.recordset && result.recordset.length > 0
+        ? Object.keys(result.recordset[0]).map(name => ({
+            name,
+            type: typeof result.recordset[0][name]
+          }))
+        : [];
+          
+      const queryResult: QueryResult = {
+        columns,
+        rows: result.recordset || [],
+        rowCount: result.rowsAffected[0] || result.recordset?.length || 0,
+        executionTime
+      };
+      
+      await pool.close();
+      return queryResult;
     } catch (error) {
       console.error("Query execution failed:", error);
       throw error;

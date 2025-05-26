@@ -144,19 +144,6 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
             <ul className="space-y-1">
               <li>
                 <button
-                  onClick={() => onSectionChange('dashboard')}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-md w-full text-left ${
-                    activeSection === 'dashboard' 
-                      ? 'bg-primary/10 text-primary font-medium' 
-                      : 'text-foreground hover:bg-muted/50'
-                  } transition`}
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </button>
-              </li>
-              <li>
-                <button
                   onClick={() => onSectionChange('reports')}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-md w-full text-left ${
                     activeSection === 'reports' 
