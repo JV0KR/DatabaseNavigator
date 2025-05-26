@@ -6,6 +6,7 @@ import QueryEditor from '@/components/database/query-editor';
 import QueryResults from '@/components/database/query-results';
 import ConnectionModal from '@/components/database/connection-modal';
 import DataEntryForms from '@/components/data-entry-forms';
+import MenuDisplay from '@/components/menu-display';
 import { useDatabase } from '@/contexts/database-context';
 import { Connection } from '@shared/schema';
 import { Button } from '@/components/ui/button';
@@ -333,58 +334,46 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Restaurant template selector */}
-          <div className="bg-card p-3 border-b">
-            <Tabs defaultValue="general" value={currentTab} onValueChange={setCurrentTab} className="w-full">
-              <TabsList className="grid grid-cols-6 mb-4">
-                <TabsTrigger value="general">General</TabsTrigger>
-                <TabsTrigger value="employees"><Users className="h-4 w-4 mr-1" /> Employees</TabsTrigger>
-                <TabsTrigger value="inventory"><ShoppingBasket className="h-4 w-4 mr-1" /> Inventory</TabsTrigger>
-                <TabsTrigger value="orders"><UtensilsCrossed className="h-4 w-4 mr-1" /> Orders</TabsTrigger>
-                <TabsTrigger value="reporting"><BarChart className="h-4 w-4 mr-1" /> Reporting</TabsTrigger>
-                <TabsTrigger value="schedules"><Calendar className="h-4 w-4 mr-1" /> Schedules</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="general" className="space-x-2">
-                <Button variant="secondary" size="sm" onClick={() => selectTemplate('createRestaurantSchema')}>
-                  Create Schema
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => selectTemplate('listRestaurants')}>
-                  List Restaurants
-                </Button>
-              </TabsContent>
-              
-              <TabsContent value="employees" className="space-x-2">
-                <Button variant="secondary" size="sm" onClick={() => selectTemplate('listEmployees')}>
-                  List Employees
-                </Button>
-              </TabsContent>
-              
-              <TabsContent value="inventory" className="space-x-2">
-                <Button variant="secondary" size="sm" onClick={() => selectTemplate('listInventory')}>
-                  List Inventory
-                </Button>
-              </TabsContent>
-              
-              <TabsContent value="orders" className="space-x-2">
-                <Button variant="secondary" size="sm" onClick={() => selectTemplate('listOrders')}>
-                  List Orders
-                </Button>
-              </TabsContent>
-              
-              <TabsContent value="reporting" className="space-x-2">
-                <Button variant="secondary" size="sm" onClick={() => selectTemplate('revenueByMonth')}>
-                  Revenue by Month
-                </Button>
-              </TabsContent>
-              
-              <TabsContent value="schedules" className="space-x-2">
-                <Button variant="secondary" size="sm">
-                  Coming Soon
-                </Button>
-              </TabsContent>
-            </Tabs>
-          </div>
+          {/* SQL Query Templates (only visible in SQL Editor) */}
+          {activeSection === 'query-editor' && (
+            <div className="bg-card p-3 border-b">
+              <Tabs defaultValue="general" value={currentTab} onValueChange={setCurrentTab} className="w-full">
+                <TabsList className="grid grid-cols-4 mb-4">
+                  <TabsTrigger value="general">General</TabsTrigger>
+                  <TabsTrigger value="employees"><Users className="h-4 w-4 mr-1" /> Employees</TabsTrigger>
+                  <TabsTrigger value="inventory"><ShoppingBasket className="h-4 w-4 mr-1" /> Inventory</TabsTrigger>
+                  <TabsTrigger value="reporting"><BarChart className="h-4 w-4 mr-1" /> Reporting</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="general" className="space-x-2">
+                  <Button variant="secondary" size="sm" onClick={() => selectTemplate('createRestaurantSchema')}>
+                    Create Schema
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => selectTemplate('listRestaurants')}>
+                    List Restaurants
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="employees" className="space-x-2">
+                  <Button variant="secondary" size="sm" onClick={() => selectTemplate('listEmployees')}>
+                    List Employees
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="inventory" className="space-x-2">
+                  <Button variant="secondary" size="sm" onClick={() => selectTemplate('listInventory')}>
+                    List Inventory
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="reporting" className="space-x-2">
+                  <Button variant="secondary" size="sm" onClick={() => selectTemplate('revenueByMonth')}>
+                    Revenue by Month
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
 
           {/* Main Content Area - Switch between SQL Editor and Forms */}
           <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
@@ -403,9 +392,15 @@ export default function Home() {
               </>
             )}
             
-            {(activeSection === 'employees' || activeSection === 'inventory' || activeSection === 'menu' || activeSection === 'orders') && (
+            {(activeSection === 'employees' || activeSection === 'inventory' || activeSection === 'orders') && (
               <div className="flex-1 p-6 overflow-auto">
                 <DataEntryForms />
+              </div>
+            )}
+            
+            {activeSection === 'menu' && (
+              <div className="flex-1 p-6 overflow-auto">
+                <MenuDisplay />
               </div>
             )}
             
@@ -421,28 +416,7 @@ export default function Home() {
               </div>
             )}
             
-            {activeSection === 'dashboard' && (
-              <div className="flex-1 p-6 overflow-auto">
-                <div className="max-w-4xl mx-auto">
-                  <h2 className="text-2xl font-bold mb-4">Dashboard de Análisis</h2>
-                  <p className="text-muted-foreground mb-6">Visualización de métricas y estadísticas del restaurante.</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="bg-card p-4 rounded-lg border">
-                      <h3 className="font-semibold mb-2">Ventas del Día</h3>
-                      <p className="text-2xl font-bold text-primary">$0</p>
-                    </div>
-                    <div className="bg-card p-4 rounded-lg border">
-                      <h3 className="font-semibold mb-2">Órdenes Activas</h3>
-                      <p className="text-2xl font-bold text-primary">0</p>
-                    </div>
-                    <div className="bg-card p-4 rounded-lg border">
-                      <h3 className="font-semibold mb-2">Empleados Activos</h3>
-                      <p className="text-2xl font-bold text-primary">0</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+
             
             {activeSection === 'reports' && (
               <div className="flex-1 p-6 overflow-auto">
@@ -467,17 +441,7 @@ export default function Home() {
               </div>
             )}
             
-            {activeSection === 'kitchen' && (
-              <div className="flex-1 p-6 overflow-auto">
-                <div className="max-w-4xl mx-auto">
-                  <h2 className="text-2xl font-bold mb-4">Gestión de Cocina</h2>
-                  <p className="text-muted-foreground mb-6">Control y seguimiento de la preparación de platos.</p>
-                  <div className="bg-card p-4 rounded-lg border">
-                    <p className="text-sm text-muted-foreground">Funcionalidad de gestión de cocina en desarrollo.</p>
-                  </div>
-                </div>
-              </div>
-            )}
+
             
             {activeSection === 'history' && (
               <div className="flex-1 p-6 overflow-auto">
