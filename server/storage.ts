@@ -113,16 +113,31 @@ export class MemStorage implements IStorage {
       // Import SQL Server package dynamically
       const sql = await import('mssql');
       
-      // Build connection config for Docker SQL Server
+      // Parse server string to handle port correctly
+      let serverHost = connection.server;
+      let port = 1433; // Default SQL Server port
+      
+      if (connection.server.includes(';')) {
+        const parts = connection.server.split(';');
+        serverHost = parts[0];
+        port = parseInt(parts[1]) || 1433;
+      } else if (connection.server.includes(',')) {
+        const parts = connection.server.split(',');
+        serverHost = parts[0];
+        port = parseInt(parts[1]) || 1433;
+      }
+      
+      // Build connection config
       const config = {
         user: connection.username,
         password: connection.password,
-        server: connection.server,
+        server: serverHost,
+        port: port,
         database: connection.database,
         options: {
           trustServerCertificate: true,
           enableArithAbort: true,
-          encrypt: false, // Important for Docker containers
+          encrypt: false,
           connectTimeout: 30000,
           requestTimeout: 30000
         },
@@ -160,16 +175,31 @@ export class MemStorage implements IStorage {
       // Record the query start time
       const startTime = Date.now();
       
-      // Build connection config for Docker SQL Server
+      // Parse server string to handle port correctly
+      let serverHost = connection.server;
+      let port = 1433; // Default SQL Server port
+      
+      if (connection.server.includes(';')) {
+        const parts = connection.server.split(';');
+        serverHost = parts[0];
+        port = parseInt(parts[1]) || 1433;
+      } else if (connection.server.includes(',')) {
+        const parts = connection.server.split(',');
+        serverHost = parts[0];
+        port = parseInt(parts[1]) || 1433;
+      }
+      
+      // Build connection config
       const config = {
         user: connection.username,
         password: connection.password,
-        server: connection.server,
+        server: serverHost,
+        port: port,
         database: connection.database,
         options: {
           trustServerCertificate: true,
           enableArithAbort: true,
-          encrypt: false, // Important for Docker containers
+          encrypt: false,
           connectTimeout: 30000,
           requestTimeout: 30000
         },

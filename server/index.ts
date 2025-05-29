@@ -45,7 +45,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
   
-  const port = 3000; // Cambiado a 3000 por si el 5000 está ocupado
+  const port = 5000;
   
   
   server.listen(port, () => {
